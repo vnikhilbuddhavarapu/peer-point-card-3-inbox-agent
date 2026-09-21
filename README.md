@@ -1,6 +1,6 @@
 # Inbox Agent
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)]([CARD_3_DEPLOY_URL])
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/vnikhilbuddhavarapu/peer-point-card-3-inbox-agent)
 
 Build the decision-making layer of an email Agent while the signed ingress, durable thread, simulator, draft plumbing, and approval dashboard are already wired for you.
 
