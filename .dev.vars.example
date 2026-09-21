@@ -1,0 +1,2 @@
+# Deterministic workshop fallback. Do not commit a real router capability.
+MAIL_ROUTER_CAPABILITY=simulator-only
