@@ -1,0 +1,61 @@
+docs/demo-guide.md
+  s_aea447e7b4be7f::t_c9f919562c90dc 1-111
+docs/phase-6.md
+  s_aea447e7b4be7f::t_cc345abe6dbf4f 62
+os/skills/inbox-agent/SKILL.md
+  s_aea447e7b4be7f::t_b19751322e60b9 24,28,37,49,51-52
+scripts/derive-starters.mjs
+  s_aea447e7b4be7f::t_279649bf5dce06 233-234
+starter-overlays/card-3-inbox-agent/README.md
+  s_aea447e7b4be7f::t_84be9a71f80b67 5,11,15-18,27,37,39,42,46,48-56,62,66-155,162,164-165,170,174,186,188-192,200-202,204,208-212,214-215,219
+starter-overlays/card-3-inbox-agent/overlay.json
+  s_aea447e7b4be7f::t_1fb844f1e020fd 11,26-27,30-31,42-43
+starter-overlays/card-3-inbox-agent/package.json
+  s_aea447e7b4be7f::t_3ddc3219e63d9a 25
+starter-overlays/card-3-inbox-agent/src/agent/agent.ts
+  s_aea447e7b4be7f::t_729473c7200080 34-35,45,125-133,140
+starter-overlays/card-3-inbox-agent/src/server.ts
+  s_aea447e7b4be7f::t_82f5514437595e 1-73
+starter-overlays/card-3-inbox-agent/src/services/email-service.ts
+  s_aea447e7b4be7f::t_3802e6a7a6ecb3 1-155
+starter-overlays/card-3-inbox-agent/test/email-service.test.ts
+  s_aea447e7b4be7f::t_33d25112be2506 1-134
+starter-overlays/card-3-inbox-agent/wrangler.jsonc
+  s_aea447e7b4be7f::t_a00e4b6cd4a9e0 8,19,23,25
+starters/card-3-inbox-agent/README.md
+  s_aea447e7b4be7f::t_6f4bda8cda3ca8 5,11,15-18,27,37,39,42,46-48,50-56,62,66-155,162,164-165,170,174,186,188-192,200-202,204,208-212,214-215,219
+starters/card-3-inbox-agent/package-lock.json
+  s_aea447e7b4be7f::t_5060d386a66f2c 19
+starters/card-3-inbox-agent/package.json
+  s_aea447e7b4be7f::t_216997d454a2a9 28,53-57
+starters/card-3-inbox-agent/src/agent/agent.ts
+  s_aea447e7b4be7f::t_2f4a0f99f6e758 34-35,45,125-133,140
+starters/card-3-inbox-agent/src/server.ts
+  s_aea447e7b4be7f::t_17df64abbc2610 4-8,42-47,52-72
+starters/card-3-inbox-agent/src/services/email-service.ts
+  s_aea447e7b4be7f::t_74f711d210bf5a 1-155
+starters/card-3-inbox-agent/starter.json
+  s_aea447e7b4be7f::t_52e8a2b1ec96b0 12-13
+starters/card-3-inbox-agent/test/email-service.test.ts
+  s_aea447e7b4be7f::t_2321cb6f5da637 1-134
+starters/card-3-inbox-agent/worker-configuration.d.ts
+  s_aea447e7b4be7f::t_272484fa183f5f 2,5,8,12,14,32
+starters/card-3-inbox-agent/wrangler.jsonc
+  s_aea447e7b4be7f::t_aeacfcbd24f6e2 8,19,23,25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "cddb2812a2456787a35bf25170c21d8a94822f02",
+  "prompts": {},
+  "sessions": {
+    "s_aea447e7b4be7f": {
+      "agent_id": {
+        "tool": "devin",
+        "id": "s_aea447e7b4be7f",
+        "model": "unknown"
+      },
+      "human_author": "Nikhil <vnikhilbuddhavarapu@outlook.com>"
+    }
+  }
+}
