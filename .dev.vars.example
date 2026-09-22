@@ -1,2 +1,1 @@
-# Deterministic workshop fallback. Do not commit a real router capability.
-MAIL_ROUTER_CAPABILITY=simulator-only
+# The starter uses the committed simulator-only fallback. Do not place real mail-router capabilities in source control.
