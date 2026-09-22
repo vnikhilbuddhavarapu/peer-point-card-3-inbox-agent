@@ -116,11 +116,13 @@ Do not bypass signature verification, replay limits, strict schemas, the one-cor
 
 ## Start with Peer Point OS
 
-After the Deploy to Cloudflare flow creates your repository and first deployment, give the generated Git URL to Peer Point OS with this prompt:
+After Deploy to Cloudflare creates your repository and first deployment, copy your generated GitHub repository URL. In a new Peer Point OS chat, run:
 
 ```text
-Clone this repository in an isolated Container MCP environment. Read the complete README before editing. Run npm ci and npm run verify to establish a baseline. Implement a working Inbox Agent using the required Cloudflare primitives and preserving its safety constraints. You may choose a different architecture from the suggested path. Run focused tests and npm run verify, inspect the diff, then push through the GitHub gatekeeper. Do not claim success until verification passes. After the push, inspect Workers Builds and give me the deployed URL and demo checklist.
+/inbox-agent https://github.com/<your-user>/<deploy-created-repository>
 ```
+
+Replace the example URL with your generated repository. Peer Point OS will read this README and guide the card workflow. If Container MCP becomes unavailable, continue with the skill's GitHub branch/PR and Workers Builds fallback.
 
 ## Start with your own IDE
 
