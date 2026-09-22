@@ -31,8 +31,8 @@ import {
   type PendingApproval,
 } from "./state.js";
 import { resolveSendReplyPolicy, saveEstablishedFact, workshopTaskIncomplete } from "./workshop.js";
-import { outboundRequestSchema, type MailPayload } from "../services/contracts.js";
-import { sendOutboundMail } from "../services/mail-router.js";
+import { handleSchema, outboundRequestSchema, type MailPayload } from "../services/contracts.js";
+import { deliverOutboundEmail, emailModeSchema } from "../services/email-service.js";
 import { logError, logInfo } from "../shared/logger.js";
 
 const ACTIVE_TOOLS = ["saveFact", "saveDraft", "sendReply", "set_context"];
@@ -42,7 +42,7 @@ function sameDraft(left: DraftInput, right: DraftInput): boolean {
 }
 
 export class InboxAgent extends Think<Env, InboxAgentState> {
-  override initialState = createInitialState("mtl-agent");
+  override initialState = createInitialState(handleSchema.parse(this.env.INBOX_HANDLE));
   override maxSteps = 5;
   override includeMcpTools = false;
   override workspaceBash = false;
@@ -122,21 +122,22 @@ export class InboxAgent extends Think<Env, InboxAgentState> {
             ...draft,
             hopCount: 0,
           });
-          const result =
-            this.env.MAIL_ROUTER_CAPABILITY === "simulator-only"
-              ? { ok: true as const, data: { status: "simulated" as const } }
-              : await sendOutboundMail(request, {
-                  baseUrl: this.env.MAIL_ROUTER_URL,
-                  capability: this.env.MAIL_ROUTER_CAPABILITY,
-                });
-          if (!result.ok) throw new Error(`MAIL_ROUTER_${result.error.code}`);
+          const result = await deliverOutboundEmail(request, {
+            mode: emailModeSchema.parse(this.env.EMAIL_MODE),
+            email: this.env.EMAIL,
+            inboundDomain: this.env.INBOUND_DOMAIN,
+            sendingDomain: this.env.SENDING_DOMAIN,
+            routerUrl: this.env.MAIL_ROUTER_URL,
+            routerCapability: this.env.MAIL_ROUTER_CAPABILITY,
+          });
+          if (!result.ok) throw new Error(`EMAIL_DELIVERY_${result.error.code}`);
 
           const now = new Date().toISOString();
           this.setState(
             setDraftStatus(
               setDeliveryResult(
                 appendOutboundMessage(this.state, {
-                  from: `${this.state.handle}@${this.env.INBOUND_DOMAIN}`,
+                  from: `${this.state.handle}@${this.env.SENDING_DOMAIN}`,
                   to: draft.to,
                   subject: draft.subject,
                   text: draft.text,

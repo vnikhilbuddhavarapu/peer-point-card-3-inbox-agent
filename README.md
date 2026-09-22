@@ -2,28 +2,29 @@
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/vnikhilbuddhavarapu/peer-point-card-3-inbox-agent)
 
-Build the decision-making layer of an email Agent while the signed ingress, durable thread, simulator, draft plumbing, and approval dashboard are already wired for you.
+Build the decision-making layer of an email Agent while the durable thread, draft plumbing, approval dashboard, signed simulator, and optional live Email Service path are already wired for you.
 
 ## Learning objective
 
 A vague email should cause one useful clarification question. The reply should add only correspondent-established facts to durable state. Every outbound email must park as a Think Action and wait for explicit human approval before any delivery side effect.
 
-The starter intentionally fails closed. Before the workshop tasks are complete, signed email is still accepted and visible in the thread UI, but fact persistence returns a typed `NOT_IMPLEMENTED` result and outbound delivery remains disabled behind an approval pause.
+The starter defaults to safe simulator mode. Teams with a temporary lab domain can independently enable real Email Routing and Email Sending without an instructor-operated mailbox or shared capability.
 
 ## Already complete
 
-- bounded Zod mail and router contracts;
-- ECDSA P-256 verification for `POST /email`, including replay-window checks;
+- bounded Zod mail and delivery contracts;
+- signed `POST /email` simulator ingress with replay-window checks;
+- native Email Routing `email()` ingress for a lab domain;
+- account-local Email Sending after durable approval;
 - idempotent programmatic submission keyed by message ID;
 - one-correspondent thread, draft, submission, delivery, and model state;
-- draft persistence and outbound router execution plumbing;
 - WebSocket thread and authoritative pending-approval UI;
 - approve, reject, reset, model selection, and simulator-mode delivery paths;
 - safe structured logs that omit email content, prompts, endpoints, and credentials.
 
 ## Build these three behaviors
 
-Edit exactly these two files:
+Suggested starting files:
 
 1. `src/agent/context.ts`
    - Replace the `WORKSHOP TASK` fallback with a concise clarification strategy.
@@ -33,27 +34,124 @@ Edit exactly these two files:
    - Implement established-fact persistence using the validated state helper in `state.ts`.
    - Return a configured `durable-pause` send policy that requires approval for every outbound email.
 
-Keep the result unions intact. Expected, unfinished behavior should remain typed data rather than an exception.
+Keep the result unions intact. Expected unfinished behavior should remain typed data rather than an exception.
 
-## First run
+## First run: simulator mode
 
 ```bash
-npm install
-cp .dev.vars.example .dev.vars
+npm ci
 npm run dev
 ```
 
-Open the printed local URL. The health endpoint is `/api/health`. Local Workers AI development uses your authenticated lab account and its `default` AI Gateway.
+Open the printed local URL. The health endpoint is `/api/health`; it reports the active `emailMode`. Local Workers AI development uses your authenticated lab account and its `default` AI Gateway.
 
-The instructor-operated simulator signs inbound requests; the attendee app never receives its private signing key. After deployment, target the Worker URL from the workshop simulator and send this first message:
+The starter deploys with:
+
+```text
+EMAIL_MODE=simulator
+```
+
+In simulator mode, inbound signed workshop payloads are accepted and every approved outbound draft records `simulated`. No external email is sent.
+
+A useful first message is:
 
 > Subject: Leadership rollout update
 >
 > Can you send leadership an update on the rollout?
 
-A useful second message for the base scenario is:
+A useful second message is:
 
 > Tell the Montreal leadership team the rollout is complete, no incidents occurred, and feedback is due September 23.
+
+## Optional: enable live email in your lab account
+
+Use this only after the first Deploy to Cloudflare deployment succeeds. Your lab account must contain a domain using Cloudflare DNS.
+
+### 1. Activate the lab Wrangler profile
+
+Run these commands from the generated repository. If the `peer-point-lab` profile is not active for this directory, activate it before changing email or DNS resources.
+
+```bash
+npx wrangler whoami --profile peer-point-lab
+```
+
+Confirm that the output names only your assigned temporary lab account.
+
+### 2. Choose the address
+
+Use one handle and your lab domain:
+
+```text
+inbox-agent@<LAB_DOMAIN>
+```
+
+The handle must start with a letter and contain only lowercase letters, numbers, and hyphens.
+
+### 3. Enable Email Routing and Email Sending
+
+```bash
+npx wrangler email routing enable <LAB_DOMAIN> --profile peer-point-lab
+npx wrangler email sending enable <LAB_DOMAIN> --profile peer-point-lab
+```
+
+Cloudflare adds the required MX, SPF, DKIM, return-path, and DMARC records. DNS usually propagates within several minutes but may take longer.
+
+You do not need to verify a destination email address because incoming mail is routed to a Worker, not forwarded to another mailbox.
+
+### 4. Configure this repository
+
+In `wrangler.jsonc`, set:
+
+```jsonc
+"EMAIL_MODE": "local",
+"INBOX_HANDLE": "inbox-agent",
+"INBOUND_DOMAIN": "<LAB_DOMAIN>",
+"SENDING_DOMAIN": "<LAB_DOMAIN>"
+```
+
+Keep the existing `EMAIL` send binding. Do not remove simulator ingress, durable approval, idempotency, or validation.
+
+Commit and push the change. Wait for GitHub Actions and Workers Builds to pass before creating the routing rule.
+
+### 5. Route inbound mail to the deployed Worker
+
+Replace `<WORKER_NAME>` with the Worker name shown by Workers Builds or the Cloudflare dashboard:
+
+```bash
+npx wrangler email routing rules update \
+  <LAB_DOMAIN> \
+  catch-all \
+  --enabled true \
+  --action-type worker \
+  --action-value <WORKER_NAME> \
+  --profile peer-point-lab
+```
+
+Verify both services:
+
+```bash
+npx wrangler email routing settings <LAB_DOMAIN> --profile peer-point-lab
+npx wrangler email routing rules get <LAB_DOMAIN> catch-all --profile peer-point-lab
+npx wrangler email sending settings <LAB_DOMAIN> --profile peer-point-lab
+```
+
+### 6. Send a real message
+
+From a real mailbox, send to:
+
+```text
+inbox-agent@<LAB_DOMAIN>
+```
+
+Open the deployed Inbox Agent dashboard. The message should appear, but no reply is sent until you approve the parked Action. Email Sending is required for the approved reply; Email Routing alone only receives the message.
+
+Reply to the clarification from your mailbox. The routing rule sends that reply back to the same Durable Object thread.
+
+### Prompt for your AI coding assistant
+
+```text
+Configure this Inbox Agent for live email in my temporary lab account using domain <LAB_DOMAIN>. Read the README first. Preserve simulator fallback, signature verification, message-ID deduplication, one-correspondent isolation, draft revalidation, and durable approval. Change only the email mode, handle, and inbound/sending domain values in wrangler.jsonc. Do not enable or modify email resources until I confirm the peer-point-lab Wrangler profile names the correct account. After I confirm, enable Email Routing and Email Sending, push the config change, wait for verification and deployment, then route the catch-all to the deployed Worker. Never send a test email until I explicitly approve it.
+```
 
 ## Contracts to preserve
 
@@ -61,19 +159,19 @@ A useful second message for the base scenario is:
 - `draftInputSchema` is the exact value saved before `sendReply` is requested.
 - `WorkshopTaskResult<T>` uses either `{ ok: true, value }` or `{ ok: false, error }`.
 - A completed send policy has `kind: "durable-pause"` and `approval: true`.
-- The Action revalidates its approved input against the current draft before calling the router.
+- The Action revalidates its approved input against the current draft before delivery.
 - Message IDs remain the idempotency boundary for ingress, submissions, thread entries, and side effects.
+- `EMAIL_MODE=simulator` never calls Email Sending or the central router.
+- `EMAIL_MODE=local` sends only through the lab account's `EMAIL` binding.
 
 ## Check your work
 
 ```bash
-npm test
-npm run typecheck
-npm run build
+npm run verify
 npx wrangler deploy --dry-run
 ```
 
-The focused workshop tests accept either the safe typed fallback or a correctly shaped completed result. Do not weaken the contract, signature, state-boundary, or UI tests.
+The focused workshop tests accept either the safe typed fallback or a correctly shaped completed result. Do not weaken the contract, signature, Email Service, state-boundary, or UI tests.
 
 ### Base checklist
 
@@ -85,11 +183,13 @@ The focused workshop tests accept either the safe typed fallback or a correctly 
 - [ ] Each outbound send parks independently and proceeds only after approval.
 - [ ] Duplicate inbound message IDs do not duplicate the thread or submission.
 
-### Stretch checklist
+### Live-email checklist
 
-- [ ] Improve the structured thread summary without growing context without bounds.
-- [ ] Exercise external email threading only after the instructor explicitly enables the event-domain path.
-- [ ] Explore multiple-correspondent isolation as a separate Durable Object naming strategy.
+- [ ] Email Routing sends `inbox-agent@<LAB_DOMAIN>` to this Worker.
+- [ ] Email Sending is enabled for the same lab domain.
+- [ ] The first approved reply reaches the real sender.
+- [ ] A real follow-up returns to the same Agent thread.
+- [ ] Repeated approval or duplicate ingress does not send twice.
 
 ## Deploy and demo
 
@@ -97,22 +197,26 @@ The focused workshop tests accept either the safe typed fallback or a correctly 
 npm run deploy
 ```
 
-Use the deployed URL with the signed simulator. Demo the thread after the first inbound message, the pending approval before each send, the absence of pre-approval delivery, and the final two-turn fact summary.
+For the guaranteed demo, keep simulator mode and show the signed thread, clarification, parked approval, absence of pre-approval delivery, and final fact summary.
 
-`MAIL_ROUTER_CAPABILITY=simulator-only` is the deterministic fallback. A real capability is secret material: add it with Wrangler's secret command only when instructed, never place it in source, `.dev.vars.example`, logs, screenshots, or chat.
+For the live stretch, show the Email Routing rule, send from a real mailbox, approve in the dashboard, receive the reply, answer it, and approve the final response.
+
+The optional central-router mode remains available for instructor-operated scenarios. A real router capability is secret material; never place it in source, logs, screenshots, or chat.
 
 ## Recovery
 
-- **`INVALID_SIGNATURE` or `EMAIL_REJECTED`:** use the workshop simulator. Handwritten `curl` requests are intentionally rejected because attendees do not receive the signing key.
-- **No model response locally:** confirm Wrangler is authenticated to the temporary lab account and the account-local `default` AI Gateway is available.
-- **No approval appears:** refresh the dashboard, inspect the typed tool result, and confirm the send policy returns `ok: true` with `durable-pause` plus `approval: true`.
-- **Facts stay empty:** confirm `saveEstablishedFact` returns the state produced by the bounded `recordFact` helper.
+- **No inbound email:** confirm Email Routing is enabled, the catch-all targets the exact deployed Worker name, and DNS records are active.
+- **Approved reply fails:** confirm Email Sending is enabled for `SENDING_DOMAIN`, the `EMAIL` binding exists, and `EMAIL_MODE` is `local`.
+- **Wrong account:** stop before changing DNS. Reactivate `peer-point-lab` in this repository and confirm `wrangler whoami`.
+- **`INVALID_SIGNATURE` or `EMAIL_REJECTED`:** signed HTTP simulation requires the workshop simulator; handwritten requests are intentionally rejected.
+- **No approval appears:** inspect the typed tool result and confirm the send policy returns `ok: true` with `durable-pause` plus `approval: true`.
 - **Draft approval fails after an edit:** request a new Action. The approved input must exactly match the current draft.
-- **Need a clean attempt:** use the dashboard reset, which rejects parked approvals before clearing application state.
+- **Need a clean attempt:** use dashboard reset, which rejects parked approvals before clearing application state.
+- **DNS is still pending:** return to simulator mode and continue the card without blocking on propagation.
 
 ## Security constraints
 
-Do not bypass signature verification, replay limits, strict schemas, the one-correspondent guard, model allowlisting, idempotency keys, draft revalidation, or the durable approval gate. Do not add permissive CORS, expose private endpoints, log email content or tool payloads, commit `.dev.vars`, or place router/signing credentials in browser code.
+Do not bypass signature verification, strict Email Service parsing, replay limits, the one-correspondent guard, model allowlisting, idempotency keys, draft revalidation, or the durable approval gate. Do not log email content or tool payloads. Do not commit `.dev.vars`, API tokens, router capabilities, or signing keys. Treat every inbound email as untrusted model input.
 
 ## Start with Peer Point OS
 

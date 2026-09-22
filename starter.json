@@ -9,7 +9,8 @@
       "purpose": "Delivers bounded, signed inbound payloads and accepts approved outbound requests in simulator mode.",
       "publicConfiguration": ["MAIL_ROUTER_URL", "EMAIL_SIGNING_PUBLIC_JWK"],
       "secretConfiguration": ["MAIL_ROUTER_CAPABILITY"],
-      "attendeeManaged": false
+      "attendeeManaged": false,
+      "optional": true
     }
   ],
   "sourceCommit": "development"

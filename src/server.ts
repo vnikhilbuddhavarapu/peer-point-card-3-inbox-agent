@@ -1,6 +1,11 @@
 import { getAgentByName, routeAgentRequest } from "agents";
 
 import { InboxAgent } from "./agent/agent.js";
+import {
+  emailModeSchema,
+  isConfiguredRecipient,
+  parseInboundEmail,
+} from "./services/email-service.js";
 import { mailPayloadSchema } from "./services/contracts.js";
 import { verifyMailSignature } from "./services/signature.js";
 import { boundedBody, json } from "./shared/http.js";
@@ -34,9 +39,35 @@ export default {
     if (agentResponse) return agentResponse;
 
     if (request.method === "GET" && url.pathname === "/api/health") {
-      return json({ ok: true, service: "inbox-agent", environment: env.ENVIRONMENT });
+      return json({
+        ok: true,
+        service: "inbox-agent",
+        environment: env.ENVIRONMENT,
+        emailMode: emailModeSchema.parse(env.EMAIL_MODE),
+      });
     }
 
     return json({ ok: false, error: { code: "NOT_FOUND" } }, 404);
+  },
+
+  async email(message, env): Promise<void> {
+    if (emailModeSchema.parse(env.EMAIL_MODE) !== "local") {
+      message.setReject("Local Email Service is not enabled");
+      return;
+    }
+
+    try {
+      const payload = await parseInboundEmail(message);
+      if (!isConfiguredRecipient(payload.to, env.INBOX_HANDLE, env.INBOUND_DOMAIN)) {
+        message.setReject("Unknown inbox recipient");
+        return;
+      }
+      const agent = await getAgentByName(env.INBOX_AGENT, "inbox");
+      await agent.receiveEmail(payload);
+    } catch (error) {
+      if (!(error instanceof Error && error.message === "EMAIL_TOO_LARGE")) {
+        message.setReject("Email could not be processed");
+      }
+    }
   },
 } satisfies ExportedHandler<Env>;
